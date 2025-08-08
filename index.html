@@ -1,30 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Stress Zoo - Adult Edition</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ecosystem PWA</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Link to manifest -->
+  <link rel="manifest" href="manifest.json" />
+  
+  <!-- Theme color for browser -->
+  <meta name="theme-color" content="#4caf50" />
 </head>
 <body>
-  <header>
-    <h1>Stress Zoo 🐿️💼</h1>
-    <p id="roast" class="roast">Welcome! Type your deadlines away...</p>
-  </header>
+  <h1>Welcome to the Ecosystem!</h1>
+  <p>Explore the ecosystem and watch it grow.</p>
 
-  <main>
-    <canvas id="zooCanvas" width="800" height="500"></canvas>
-
-    <div class="stress-info">
-      <p>Stress Level: <span id="stressLevel">0</span></p>
-      <p>Current Time: <span id="currentTime"></span></p>
-      <p>Type words like <code>deadline</code>, <code>urgent</code>, <code>meeting</code> to stress your zoo!</p>
-    </div>
-
-    <video id="video" width="320" height="240" autoplay muted style="display:none;"></video>
-  </main>
-
-  <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.0.2/dist/face-api.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
