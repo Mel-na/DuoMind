@@ -21,6 +21,7 @@ function startApp() {
 
   let stressScore = 0;
   let lastTypingTime = null;
+  let lastGrowTime = 0;
 
   // Roblox-style SVG plants
   const plantSVGs = [
@@ -62,6 +63,9 @@ function startApp() {
     </svg>`
   ];
 
+  // Hide grow button since we grow on typing
+  growButton.style.display = 'none';
+
   // Webcam + face emotion detection
   startWebcam();
 
@@ -80,9 +84,15 @@ function startApp() {
     console.log('Ambient Light Sensor not supported.');
   }
 
-  // Typing detection
+  // Typing detection & ecosystem growth on typing
   typingArea.addEventListener('input', (e) => {
     const now = Date.now();
+
+    if (now - lastGrowTime > 500) {  // grow max every 0.5 seconds
+      growEcosystem();
+      lastGrowTime = now;
+    }
+
     if (lastTypingTime) {
       const deltaSec = (now - lastTypingTime) / 1000;
       const speed = 1 / deltaSec;
@@ -91,38 +101,35 @@ function startApp() {
     lastTypingTime = now;
   });
 
-  growButton.addEventListener('click', () => {
-    growEcosystem();
-  });
-
-  async function startWebcam() {
+  function startWebcam() {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
-        webcam.srcObject = stream;
+      navigator.mediaDevices.getUserMedia({ video: {} })
+        .then(stream => {
+          webcam.srcObject = stream;
+          setInterval(async () => {
+            const detections = await faceapi
+              .detectSingleFace(webcam, new faceapi.TinyFaceDetectorOptions())
+              .withFaceExpressions();
 
-        setInterval(async () => {
-          const detections = await faceapi
-            .detectSingleFace(webcam, new faceapi.TinyFaceDetectorOptions())
-            .withFaceExpressions();
-          overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+            overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
 
-          if (detections) {
-            const resizedDetections = faceapi.resizeResults(detections, {
-              width: webcam.width,
-              height: webcam.height
-            });
-            faceapi.draw.drawDetections(overlay, resizedDetections);
-            faceapi.draw.drawFaceExpressions(overlay, resizedDetections);
+            if (detections) {
+              const resizedDetections = faceapi.resizeResults(detections, {
+                width: webcam.width,
+                height: webcam.height
+              });
+              faceapi.draw.drawDetections(overlay, resizedDetections);
+              faceapi.draw.drawFaceExpressions(overlay, resizedDetections);
 
-            const expressions = detections.expressions;
-            const stressFromFace = mapExpressionsToStress(expressions);
-            adjustStress(stressFromFace);
-          }
-        }, 3000);
-      } catch (err) {
-        console.warn('Webcam access denied or error:', err);
-      }
+              const expressions = detections.expressions;
+              const stressFromFace = mapExpressionsToStress(expressions);
+              adjustStress(stressFromFace);
+            }
+          }, 3000);
+        })
+        .catch(err => {
+          console.warn('Webcam access denied or error:', err);
+        });
     }
   }
 
@@ -164,8 +171,7 @@ function startApp() {
     const items = ecosystemArea.children;
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      const svg = item.querySelector('svg');
-      if (!svg) continue;
+      if (!item.querySelector('svg')) continue;
 
       if (stressScore > 7) {
         item.style.filter = 'grayscale(70%) sepia(50%) saturate(300%) hue-rotate(10deg) brightness(70%)';
@@ -185,7 +191,6 @@ function startApp() {
     const isAnimal = Math.random() < 0.4;
     container.classList.add(isAnimal ? 'animal' : 'plant');
 
-    // Pick random SVG and insert as innerHTML
     const svgString = isAnimal
       ? animalSVGs[Math.floor(Math.random() * animalSVGs.length)]
       : plantSVGs[Math.floor(Math.random() * plantSVGs.length)];
@@ -211,5 +216,12 @@ function startApp() {
 
     oscillator.start();
     oscillator.stop(audioCtx.currentTime + 0.2);
+  }
+
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('Service Worker Registered'))
+      .catch(err => console.error('Service Worker registration failed:', err));
   }
 }
