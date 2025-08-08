@@ -13,7 +13,6 @@ async function loadFaceApiModels() {
 function startApp() {
   const typingArea = document.getElementById('typingArea');
   const stressLevelDisplay = document.getElementById('stressLevel');
-  const growButton = document.getElementById('growButton');
   const ecosystemArea = document.getElementById('ecosystemArea');
   const webcam = document.getElementById('webcam');
   const overlay = document.getElementById('overlay');
@@ -25,18 +24,20 @@ function startApp() {
 
   // Roblox-style SVG plants
   const plantSVGs = [
-    `<svg viewBox="0 0 64 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+    `<svg viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
       <rect width="64" height="96" fill="#4CAF50" rx="8" ry="8"/>
       <rect y="40" width="64" height="24" fill="#81C784"/>
       <rect y="72" width="64" height="8" fill="#388E3C"/>
       <rect x="28" y="16" width="8" height="40" fill="#2E7D32"/>
     </svg>`,
-    `<svg viewBox="0 0 64 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+    
+    `<svg viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
       <rect width="64" height="96" fill="#66BB6A" rx="10" ry="10"/>
       <circle cx="32" cy="40" r="20" fill="#81C784"/>
       <rect y="64" width="64" height="12" fill="#388E3C"/>
     </svg>`,
-    `<svg viewBox="0 0 64 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    `<svg viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
       <rect width="64" height="96" fill="#2E7D32" rx="6" ry="6"/>
       <polygon points="16,96 32,60 48,96" fill="#4CAF50"/>
       <rect y="40" width="64" height="16" fill="#81C784"/>
@@ -45,28 +46,27 @@ function startApp() {
 
   // Roblox-style SVG animals
   const animalSVGs = [
-    `<svg viewBox="0 0 64 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+    `<svg viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
       <rect width="64" height="96" fill="#FFC107" rx="12" ry="12"/>
       <circle cx="20" cy="40" r="8" fill="#FFEB3B"/>
       <circle cx="44" cy="40" r="8" fill="#FFEB3B"/>
       <rect y="72" width="64" height="8" fill="#FFA000"/>
     </svg>`,
-    `<svg viewBox="0 0 64 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    `<svg viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
       <rect width="64" height="96" fill="#EF5350" rx="14" ry="14"/>
       <circle cx="32" cy="50" r="20" fill="#E53935"/>
       <rect y="70" width="64" height="14" fill="#B71C1C"/>
     </svg>`,
-    `<svg viewBox="0 0 64 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    `<svg viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
       <rect width="64" height="96" fill="#42A5F5" rx="10" ry="10"/>
       <rect x="12" y="40" width="40" height="30" fill="#90CAF9"/>
       <rect y="75" width="64" height="10" fill="#1E88E5"/>
     </svg>`
   ];
 
-  // Hide grow button since we grow on typing
-  growButton.style.display = 'none';
-
-  // Webcam + face emotion detection
+  // Webcam + face expression detection
   startWebcam();
 
   // Ambient Light Sensor
@@ -167,22 +167,6 @@ function startApp() {
     else if (stressScore > 1) levelText = 'Low Stress 🙂';
 
     stressLevelDisplay.textContent = 'Stress Level: ' + levelText;
-
-    const items = ecosystemArea.children;
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (!item.querySelector('svg')) continue;
-
-      if (stressScore > 7) {
-        item.style.filter = 'grayscale(70%) sepia(50%) saturate(300%) hue-rotate(10deg) brightness(70%)';
-      } else if (stressScore > 4) {
-        item.style.filter = 'sepia(0.3) saturate(150%) brightness(90%)';
-      } else {
-        item.style.filter = 'none';
-      }
-      const scale = 1 - (stressScore / 15);
-      item.style.transform = `scale(${scale})`;
-    }
   }
 
   function growEcosystem() {
@@ -199,7 +183,6 @@ function startApp() {
     ecosystemArea.appendChild(container);
 
     playGrowSound();
-    updateStressDisplay();
   }
 
   function playGrowSound() {
