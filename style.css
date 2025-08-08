@@ -1,62 +1,62 @@
-/* Dark mode office vibes */
 body {
-  background: #121212;
-  color: #ddd;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  padding: 0;
+  font-family: Arial, sans-serif;
+  margin: 40px;
   text-align: center;
+  background-color: #e0f2f1;
+  color: #004d40;
 }
 
-header {
-  background: #1f1f1f;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.7);
-}
-
-h1 {
-  margin: 0;
-  font-weight: 700;
-  font-size: 2.5rem;
-}
-
-.roast {
-  margin-top: 10px;
-  font-style: italic;
-  color: #ff6f61;
-}
-
-main {
-  margin: 20px auto;
-  max-width: 900px;
-}
-
-canvas {
-  border: 2px solid #444;
-  background: #263238;
+button {
+  background-color: #4caf50;
+  color: white;
+  font-size: 18px;
+  padding: 12px 24px;
+  border: none;
   border-radius: 8px;
-  display: block;
-  margin: 0 auto;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: background-color 0.3s ease;
 }
 
-.stress-info {
-  margin-top: 15px;
-  font-size: 1.1rem;
-  color: #bbb;
+button:hover {
+  background-color: #45a049;
 }
 
-code {
-  background: #333;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: monospace;
-  color: #ffcc80;
+#ecosystemArea {
+  margin-top: 20px;
+  min-height: 200px;
 }
 
-#video {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  border: 1px solid #555;
-  border-radius: 6px;
+.plant {
+  display: inline-block;
+  margin: 10px;
+  width: 60px;
+  height: 100px;
+  background: linear-gradient(to top, #2e7d32 0%, #81c784 100%);
+  border-radius: 20px 20px 0 0;
+  position: relative;
+  animation: grow 1s ease forwards;
+}
+
+.plant::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 20px;
+  height: 30px;
+  background: #4caf50;
+  border-radius: 10px;
+  transform: translateX(-50%);
+}
+
+@keyframes grow {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: 100px;
+    opacity: 1;
+  }
 }
