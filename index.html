@@ -1,25 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>BrainBoom</title>
-<link rel="stylesheet" href="style.css" />
-<link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#0b74de" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Ecosystem</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>BrainBoom</h1>
-
-  <textarea id="typingArea" rows="5" placeholder="Type here..."></textarea>
-  <div id="stressLevel">Stress Level: Calm</div>
-
-  <div id="ecosystemArea"></div>
-
-  <video id="webcam" width="320" height="240" autoplay muted></video>
-  <canvas id="overlay" width="320" height="240"></canvas>
-
-  <script src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
-  <script src="script.js"></script>
+    <div class="container">
+        <div class="typing-panel">
+            <div class="title">🧠 TYPING ECOSYSTEM</div>
+            
+            <textarea 
+                id="codeInput" 
+                class="code-input" 
+                placeholder="Start typing... Your ecosystem will grow based on how you type!&#10;&#10;- Fast typing = Fire creatures 🔥&#10;- Slow typing = Ocean creatures 🌊&#10;- Errors = Storm creatures ⚡&#10;- CAPS = Thunder creatures 👑&#10;- Normal = Forest creatures 🌱"
+            ></textarea>
+            
+            <div class="stats">
+                <div class="stat">
+                    <span>Speed:</span>
+                    <span id="speed">0 WPM</span>
+                </div>
+                <div class="stat">
+                    <span>Errors:</span>
+                    <span id="errors">0%</span>
+                </div>
+                <div class="stat">
+                    <span>CAPS:</span>
+                    <span id="caps">0%</span>
+                </div>
+                <div class="stat">
+                    <span>Population:</span>
+                    <span id="population">0</span>
+                </div>
+                <div class="stat">
+                    <span>Pattern:</span>
+                    <span id="pattern">Normal</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="ecosystem" id="ecosystem">
+            <div class="controls">
+                <button class="btn" onclick="clearAll()">Clear</button>
+                <button class="btn" onclick="toggleSound()" id="soundBtn">🔊</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
 </body>
 </html>
