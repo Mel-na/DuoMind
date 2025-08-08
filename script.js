@@ -1,55 +1,41 @@
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Script loaded and DOM ready!');
 
-// Preload images
-const images = {};
-const imageSources = {
-  squirrel: 'images/coffee_squirrel.png',
-  deer: 'images/business_deer.png',
-  parrot: 'images/motivational_parrot.png',
-};
+  const growButton = document.getElementById('growButton');
+  const ecosystemArea = document.getElementById('ecosystemArea');
 
-function loadImages(sources, callback) {
-  const loadedImages = {};
-  let loadedCount = 0;
-  const total = Object.keys(sources).length;
+  growButton.addEventListener('click', () => {
+    // Create a new plant element
+    const plant = document.createElement('div');
+    plant.classList.add('plant');
 
-  for (const key in sources) {
-    loadedImages[key] = new Image();
-    loadedImages[key].src = sources[key];
-    loadedImages[key].onload = () => {
-      loadedCount++;
-      if (loadedCount >= total) {
-        callback(loadedImages);
-      }
-    };
+    // Play a subtle grow sound (optional)
+    playGrowSound();
+
+    // Add plant to ecosystem area
+    ecosystemArea.appendChild(plant);
+  });
+
+  function playGrowSound() {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(400, audioCtx.currentTime); // frequency in Hz
+    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); // volume
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.3); // play for 0.3 seconds
   }
-}
 
-// Call loadImages once at the start
-loadImages(imageSources, (imgs) => {
-  Object.assign(images, imgs);
-  updateZoo(); // draw initial zoo with images
+  // Register service worker for PWA
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('Service Worker Registered'))
+      .catch(err => console.error('Service Worker registration failed:', err));
+  }
 });
-
-// Update your updateZoo function to use images instead of shapes
-function updateZoo() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Draw Plant (coffee plant) as before (or replace with image too)
-  ctx.fillStyle = '#4caf50';
-  ctx.fillRect(380, 450, 40, -stressLevel * 3);
-
-  // Draw Coffee Squirrel image
-  if (stressLevel > 20 && images.squirrel) {
-    ctx.drawImage(images.squirrel, 160, 320, 100, 100); // adjust position and size
-  }
-
-  // Draw Business Deer image
-  if (stressLevel > 40 && images.deer) {
-    ctx.drawImage(images.deer, 580, 280, 120, 120);
-  }
-
-  // Draw Motivational Parrot image
-  if (stressLevel > 70 && images.parrot) {
-    ctx.drawImage(images.parrot, 365, 160, 90, 90);
-  }
-}
