@@ -6,6 +6,13 @@ body {
   text-align: center;
 }
 
+h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  color: #0b74de;
+  text-shadow: 1px 1px 4px #0b74de88;
+}
+
 textarea {
   width: 80%;
   font-size: 18px;
@@ -23,23 +30,6 @@ textarea {
   font-size: 22px;
 }
 
-button {
-  background-color: #0b74de;
-  color: white;
-  font-size: 18px;
-  padding: 12px 28px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  margin-bottom: 20px;
-  box-shadow: 0 0 10px #0b74de88;
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: #095ab5;
-}
-
 #ecosystemArea {
   min-height: 220px;
   margin-top: 20px;
@@ -53,7 +43,6 @@ button:hover {
   width: 80px;
   height: 120px;
   cursor: default;
-  transition: filter 0.5s ease, transform 0.5s ease;
   user-select: none;
 }
 
@@ -62,7 +51,7 @@ svg {
   height: 100%;
   user-select: none;
   pointer-events: none;
-  image-rendering: crisp-edges;
+  shape-rendering: crispEdges;
 }
 
 #webcam {
