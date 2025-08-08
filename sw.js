@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ecosystem-cache-v1';
+const CACHE_NAME = 'brainboom-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
