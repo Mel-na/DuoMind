@@ -1,27 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ecosystem PWA</title>
-  
-  <!-- Link to stylesheet -->
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- PWA manifest -->
-  <link rel="manifest" href="manifest.json" />
-
-  <!-- Theme color for browser -->
-  <meta name="theme-color" content="#4caf50" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ecosystem Stress Detector - Roblox Style</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Welcome to the Ecosystem!</h1>
-  <p>Explore the ecosystem and watch it grow.</p>
+  <h1>Ecosystem Stress Detector - Roblox Style</h1>
+
+  <textarea id="typingArea" rows="5" placeholder="Type here..."></textarea>
+  <div id="stressLevel">Stress Level: Calm</div>
 
   <button id="growButton">Grow the Ecosystem 🌱</button>
   <div id="ecosystemArea"></div>
 
-  <!-- Link to JavaScript -->
+  <video id="webcam" width="320" height="240" autoplay muted></video>
+  <canvas id="overlay" width="320" height="240"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
