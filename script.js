@@ -1,210 +1,234 @@
-window.onload = async () => {
-  await loadFaceApiModels();
-  startApp();
-};
-
-async function loadFaceApiModels() {
-  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js/models';
-  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-  await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
-  console.log('Face-api models loaded');
-}
-
-function startApp() {
-  const typingArea = document.getElementById('typingArea');
-  const stressLevelDisplay = document.getElementById('stressLevel');
-  const ecosystemArea = document.getElementById('ecosystemArea');
-  const webcam = document.getElementById('webcam');
-  const overlay = document.getElementById('overlay');
-  const overlayCtx = overlay.getContext('2d');
-
-  let stressScore = 0;
-  let lastTypingTime = null;
-  let lastGrowTime = 0;
-
-  // Roblox-style SVG plants
-  const plantSVGs = [
-    `<svg viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
-      <rect width="64" height="96" fill="#4CAF50" rx="8" ry="8"/>
-      <rect y="40" width="64" height="24" fill="#81C784"/>
-      <rect y="72" width="64" height="8" fill="#388E3C"/>
-      <rect x="28" y="16" width="8" height="40" fill="#2E7D32"/>
-    </svg>`,
+class TypingEcosystem {
+    constructor() {
+        this.input = document.getElementById('codeInput');
+        this.ecosystem = document.getElementById('ecosystem');
+        this.creatures = [];
+        this.soundEnabled = true;
+        this.audio = null;
+        
+        this.stats = {
+            keyCount: 0,
+            errorCount: 0,
+            capsCount: 0,
+            startTime: Date.now(),
+            intervals: []
+        };
+        
+        this.creatureTypes = {
+            fast: { emoji: '🔥', name: 'Fire Spirit' },
+            slow: { emoji: '🌊', name: 'Water Drop' },
+            error: { emoji: '⚡', name: 'Storm Cloud' },
+            caps: { emoji: '👑', name: 'Thunder King' },
+            normal: { emoji: '🌱', name: 'Forest Sprite' }
+        };
+        
+        this.init();
+    }
     
-    `<svg viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
-      <rect width="64" height="96" fill="#66BB6A" rx="10" ry="10"/>
-      <circle cx="32" cy="40" r="20" fill="#81C784"/>
-      <rect y="64" width="64" height="12" fill="#388E3C"/>
-    </svg>`,
-
-    `<svg viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
-      <rect width="64" height="96" fill="#2E7D32" rx="6" ry="6"/>
-      <polygon points="16,96 32,60 48,96" fill="#4CAF50"/>
-      <rect y="40" width="64" height="16" fill="#81C784"/>
-    </svg>`
-  ];
-
-  // Roblox-style SVG animals
-  const animalSVGs = [
-    `<svg viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
-      <rect width="64" height="96" fill="#FFC107" rx="12" ry="12"/>
-      <circle cx="20" cy="40" r="8" fill="#FFEB3B"/>
-      <circle cx="44" cy="40" r="8" fill="#FFEB3B"/>
-      <rect y="72" width="64" height="8" fill="#FFA000"/>
-    </svg>`,
-
-    `<svg viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
-      <rect width="64" height="96" fill="#EF5350" rx="14" ry="14"/>
-      <circle cx="32" cy="50" r="20" fill="#E53935"/>
-      <rect y="70" width="64" height="14" fill="#B71C1C"/>
-    </svg>`,
-
-    `<svg viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
-      <rect width="64" height="96" fill="#42A5F5" rx="10" ry="10"/>
-      <rect x="12" y="40" width="40" height="30" fill="#90CAF9"/>
-      <rect y="75" width="64" height="10" fill="#1E88E5"/>
-    </svg>`
-  ];
-
-  // Webcam + face expression detection
-  startWebcam();
-
-  // Ambient Light Sensor
-  if ('AmbientLightSensor' in window) {
-    try {
-      const sensor = new AmbientLightSensor();
-      sensor.addEventListener('reading', () => {
-        handleLightLevel(sensor.illuminance);
-      });
-      sensor.start();
-    } catch (err) {
-      console.warn('AmbientLightSensor error:', err);
+    init() {
+        this.setupAudio();
+        this.input.addEventListener('input', () => this.onType());
+        this.input.addEventListener('keydown', (e) => this.onKeyDown(e));
+        setInterval(() => this.updateCreatures(), 2000);
     }
-  } else {
-    console.log('Ambient Light Sensor not supported.');
-  }
-
-  // Typing detection & ecosystem growth on typing
-  typingArea.addEventListener('input', (e) => {
-    const now = Date.now();
-
-    if (now - lastGrowTime > 500) {  // grow max every 0.5 seconds
-      growEcosystem();
-      lastGrowTime = now;
+    
+    setupAudio() {
+        try {
+            this.audio = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            this.soundEnabled = false;
+        }
     }
-
-    if (lastTypingTime) {
-      const deltaSec = (now - lastTypingTime) / 1000;
-      const speed = 1 / deltaSec;
-      updateStressFromTyping(speed, e.data);
+    
+    playSound(freq = 440, duration = 100) {
+        if (!this.soundEnabled || !this.audio) return;
+        
+        const osc = this.audio.createOscillator();
+        const gain = this.audio.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.audio.destination);
+        
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        
+        gain.gain.setValueAtTime(0.1, this.audio.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audio.currentTime + duration/1000);
+        
+        osc.start();
+        osc.stop(this.audio.currentTime + duration/1000);
     }
-    lastTypingTime = now;
-  });
-
-  function startWebcam() {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: {} })
-        .then(stream => {
-          webcam.srcObject = stream;
-          setInterval(async () => {
-            const detections = await faceapi
-              .detectSingleFace(webcam, new faceapi.TinyFaceDetectorOptions())
-              .withFaceExpressions();
-
-            overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
-
-            if (detections) {
-              const resizedDetections = faceapi.resizeResults(detections, {
-                width: webcam.width,
-                height: webcam.height
-              });
-              faceapi.draw.drawDetections(overlay, resizedDetections);
-              faceapi.draw.drawFaceExpressions(overlay, resizedDetections);
-
-              const expressions = detections.expressions;
-              const stressFromFace = mapExpressionsToStress(expressions);
-              adjustStress(stressFromFace);
+    
+    onKeyDown(e) {
+        const now = Date.now();
+        
+        if (this.stats.intervals.length > 0) {
+            const interval = now - this.stats.intervals[this.stats.intervals.length - 1];
+            this.stats.intervals.push(now);
+            if (this.stats.intervals.length > 10) {
+                this.stats.intervals.shift();
             }
-          }, 3000);
-        })
-        .catch(err => {
-          console.warn('Webcam access denied or error:', err);
-        });
+        } else {
+            this.stats.intervals.push(now);
+        }
+        
+        this.stats.keyCount++;
+        
+        if (e.key === 'Backspace') {
+            this.stats.errorCount++;
+        }
+        
+        if (e.key.length === 1 && e.key === e.key.toUpperCase() && /[A-Z]/.test(e.key)) {
+            this.stats.capsCount++;
+        }
     }
-  }
-
-  function mapExpressionsToStress(expressions) {
-    if (expressions.happy > 0.6 || expressions.neutral > 0.6) return -2;
-    const negativeExpressions = ['sad', 'angry', 'fearful', 'disgusted'];
-    let stress = 0;
-    negativeExpressions.forEach(exp => {
-      stress += expressions[exp] * 5;
-    });
-    return stress;
-  }
-
-  function handleLightLevel(lux) {
-    if (lux < 30) adjustStress(0.5);
-    else adjustStress(-0.5);
-  }
-
-  function updateStressFromTyping(speed, lastChar) {
-    if (speed > 5) adjustStress(1);
-    else adjustStress(-0.5);
-    if (lastChar && ['.', ',', '!', '?', '\b'].includes(lastChar)) adjustStress(1);
-  }
-
-  function adjustStress(amount) {
-    stressScore += amount;
-    stressScore = Math.min(Math.max(stressScore, 0), 10);
-    updateStressDisplay();
-  }
-
-  function updateStressDisplay() {
-    let levelText = 'Calm';
-    if (stressScore > 7) levelText = 'High Stress 😰';
-    else if (stressScore > 4) levelText = 'Moderate Stress 😟';
-    else if (stressScore > 1) levelText = 'Low Stress 🙂';
-
-    stressLevelDisplay.textContent = 'Stress Level: ' + levelText;
-  }
-
-  function growEcosystem() {
-    const container = document.createElement('div');
-
-    const isAnimal = Math.random() < 0.4;
-    container.classList.add(isAnimal ? 'animal' : 'plant');
-
-    const svgString = isAnimal
-      ? animalSVGs[Math.floor(Math.random() * animalSVGs.length)]
-      : plantSVGs[Math.floor(Math.random() * plantSVGs.length)];
-
-    container.innerHTML = svgString;
-    ecosystemArea.appendChild(container);
-
-    playGrowSound();
-  }
-
-  function playGrowSound() {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-
-    oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
-    gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    oscillator.start();
-    oscillator.stop(audioCtx.currentTime + 0.2);
-  }
-
-  // Register service worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-      .then(() => console.log('Service Worker Registered'))
-      .catch(err => console.error('Service Worker registration failed:', err));
-  }
+    
+    onType() {
+        this.updateStats();
+        const pattern = this.getPattern();
+        
+        if (this.stats.keyCount % 5 === 0) {
+            this.createCreature(pattern);
+        }
+    }
+    
+    getPattern() {
+        if (this.stats.keyCount < 5) return 'normal';
+        
+        const timeElapsed = (Date.now() - this.stats.startTime) / 60000;
+        const wpm = timeElapsed > 0 ? (this.stats.keyCount / 5) / timeElapsed : 0;
+        const errorRate = (this.stats.errorCount / this.stats.keyCount) * 100;
+        const capsRate = (this.stats.capsCount / this.stats.keyCount) * 100;
+        
+        if (capsRate > 20) return 'caps';
+        if (errorRate > 10) return 'error';
+        if (wpm > 60) return 'fast';
+        if (wpm < 20 && this.stats.keyCount > 20) return 'slow';
+        return 'normal';
+    }
+    
+    updateStats() {
+        const timeElapsed = (Date.now() - this.stats.startTime) / 60000;
+        const wpm = timeElapsed > 0 ? Math.round((this.stats.keyCount / 5) / timeElapsed) : 0;
+        const errorRate = this.stats.keyCount > 0 ? Math.round((this.stats.errorCount / this.stats.keyCount) * 100) : 0;
+        const capsRate = this.stats.keyCount > 0 ? Math.round((this.stats.capsCount / this.stats.keyCount) * 100) : 0;
+        const pattern = this.getPattern();
+        
+        document.getElementById('speed').textContent = wpm + ' WPM';
+        document.getElementById('errors').textContent = errorRate + '%';
+        document.getElementById('caps').textContent = capsRate + '%';
+        document.getElementById('population').textContent = this.creatures.length;
+        document.getElementById('pattern').textContent = this.creatureTypes[pattern].name;
+    }
+    
+    createCreature(type) {
+        const creature = document.createElement('div');
+        creature.className = `creature ${type}-typer`;
+        
+        if (Math.random() < 0.3) {
+            creature.className += ' roblox-style';
+        }
+        
+        creature.innerHTML = this.creatureTypes[type].emoji;
+        creature.title = this.creatureTypes[type].name;
+        
+        const x = Math.random() * (this.ecosystem.clientWidth - 60) + 30;
+        const y = Math.random() * (this.ecosystem.clientHeight - 60) + 30;
+        
+        creature.style.left = x + 'px';
+        creature.style.top = y + 'px';
+        
+        creature.addEventListener('click', () => this.killCreature(creature));
+        
+        this.ecosystem.appendChild(creature);
+        this.creatures.push(creature);
+        
+        this.createExplosion(x, y);
+        this.playSound(200 + Math.random() * 600, 150);
+        
+        // Resume audio context on first interaction
+        if (this.audio && this.audio.state === 'suspended') {
+            this.audio.resume();
+        }
+    }
+    
+    createExplosion(x, y) {
+        const explosion = document.createElement('div');
+        explosion.className = 'explosion';
+        explosion.style.left = (x - 40) + 'px';
+        explosion.style.top = (y - 40) + 'px';
+        
+        this.ecosystem.appendChild(explosion);
+        
+        setTimeout(() => {
+            if (explosion.parentNode) {
+                explosion.parentNode.removeChild(explosion);
+            }
+        }, 800);
+    }
+    
+    killCreature(creature) {
+        const rect = creature.getBoundingClientRect();
+        const ecoRect = this.ecosystem.getBoundingClientRect();
+        
+        this.createExplosion(
+            rect.left - ecoRect.left + 25,
+            rect.top - ecoRect.top + 25
+        );
+        
+        this.playSound(800, 100);
+        
+        setTimeout(() => {
+            if (creature.parentNode) {
+                creature.parentNode.removeChild(creature);
+                this.creatures = this.creatures.filter(c => c !== creature);
+                this.updateStats();
+            }
+        }, 200);
+    }
+    
+    updateCreatures() {
+        this.creatures.forEach(creature => {
+            if (Math.random() < 0.3) {
+                const x = Math.random() * (this.ecosystem.clientWidth - 60) + 30;
+                const y = Math.random() * (this.ecosystem.clientHeight - 60) + 30;
+                creature.style.left = x + 'px';
+                creature.style.top = y + 'px';
+            }
+        });
+        
+        if (Math.random() < 0.1 && this.creatures.length > 0) {
+            this.playSound(300 + Math.random() * 200, 50);
+        }
+    }
 }
+
+function clearAll() {
+    const app = window.ecosystem;
+    app.creatures.forEach(creature => {
+        if (creature.parentNode) {
+            creature.parentNode.removeChild(creature);
+        }
+    });
+    app.creatures = [];
+    app.stats = {
+        keyCount: 0,
+        errorCount: 0,
+        capsCount: 0,
+        startTime: Date.now(),
+        intervals: []
+    };
+    app.updateStats();
+    app.playSound(150, 200);
+}
+
+function toggleSound() {
+    const app = window.ecosystem;
+    app.soundEnabled = !app.soundEnabled;
+    document.getElementById('soundBtn').textContent = app.soundEnabled ? '🔊' : '🔇';
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    window.ecosystem = new TypingEcosystem();
+});
