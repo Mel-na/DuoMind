@@ -1,6 +1,6 @@
 {
-  "name": "Ecosystem Stress Detector",
-  "short_name": "Ecosystem",
+  "name": "BrainBoom",
+  "short_name": "BrainBoom",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#d7f0ff",
